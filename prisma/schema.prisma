@@ -1,0 +1,152 @@
+// This is your Prisma schema file
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "windows"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================
+// USERS (synced with Supabase auth.users)
+// ============================================
+model User {
+  id            String    @id @db.Uuid
+  email         String    @unique
+  name          String?
+  avatarUrl     String?   @map("avatar_url")
+  
+  // Stripe
+  stripeCustomerId       String?   @unique @map("stripe_customer_id")
+  stripeSubscriptionId   String?   @unique @map("stripe_subscription_id")
+  stripePriceId          String?   @map("stripe_price_id")
+  stripeCurrentPeriodEnd DateTime? @map("stripe_current_period_end")
+  
+  // Plan
+  plan          Plan      @default(FREE)
+  
+  // Relations
+  apiKeys       ApiKey[]
+  templates     Template[]
+  generations   Generation[]
+  
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  
+  @@map("users")
+}
+
+enum Plan {
+  FREE
+  STARTER
+  PRO
+  BUSINESS
+}
+
+// ============================================
+// API KEYS
+// ============================================
+model ApiKey {
+  id            String    @id @default(cuid())
+  userId        String    @map("user_id") @db.Uuid
+  name          String
+  key           String    @unique
+  prefix        String
+  lastUsedAt    DateTime? @map("last_used_at")
+  
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  
+  @@index([userId])
+  @@index([key])
+  @@map("api_keys")
+}
+
+// ============================================
+// TEMPLATES
+// ============================================
+model Template {
+  id            String    @id @default(cuid())
+  userId        String    @map("user_id") @db.Uuid
+  name          String
+  description   String?
+  width         Int       @default(1200)
+  height        Int       @default(630)
+  
+  // Template data (JSON structure with elements, positions, fonts, etc.)
+  config        Json
+  
+  // Preview image URL (in R2)
+  previewUrl    String?   @map("preview_url")
+  
+  isPublic      Boolean   @default(false) @map("is_public")
+  
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  generations   Generation[]
+  
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  
+  @@index([userId])
+  @@map("templates")
+}
+
+// ============================================
+// GENERATIONS (historique des images générées)
+// ============================================
+model Generation {
+  id            String    @id @default(cuid())
+  userId        String    @map("user_id") @db.Uuid
+  templateId    String    @map("template_id")
+  
+  // Input data
+  variables     Json
+  
+  // Output
+  imageUrl      String    @map("image_url")
+  format        String    @default("png")
+  width         Int
+  height        Int
+  fileSize      Int?      @map("file_size")
+  
+  // Metadata
+  renderTimeMs  Int?      @map("render_time_ms")
+  source        String?
+  
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template      Template  @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime  @default(now()) @map("created_at")
+  
+  @@index([userId])
+  @@index([templateId])
+  @@index([createdAt])
+  @@map("generations")
+}
+
+// ============================================
+// USAGE (compteurs mensuels pour billing)
+// ============================================
+model Usage {
+  id            String    @id @default(cuid())
+  userId        String    @map("user_id") @db.Uuid
+  
+  // Période (YYYY-MM)
+  period        String
+  
+  imagesCount   Int       @default(0) @map("images_count")
+  
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  
+  @@unique([userId, period])
+  @@index([userId])
+  @@map("usage")
+}
