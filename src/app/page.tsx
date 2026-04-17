@@ -207,7 +207,7 @@ const plans = [
   },
   {
     name: 'Starter',
-    price: '$19',
+    price: '$19.99',
     period: '/ month',
     description: 'For indie makers and side projects',
     images: '1,000 images / month',
@@ -223,7 +223,7 @@ const plans = [
   },
   {
     name: 'Pro',
-    price: '$49',
+    price: '$49.99',
     period: '/ month',
     description: 'For growing products and teams',
     images: '10,000 images / month',
@@ -240,7 +240,7 @@ const plans = [
   },
   {
     name: 'Business',
-    price: '$149',
+    price: '$149.99',
     period: '/ month',
     description: 'For agencies and high-volume usage',
     images: '50,000 images / month',
@@ -298,9 +298,9 @@ const jsonLd = {
   url: 'https://pixelizea.com',
   offers: [
     { '@type': 'Offer', price: '0', priceCurrency: 'USD', name: 'Free' },
-    { '@type': 'Offer', price: '19', priceCurrency: 'USD', name: 'Starter' },
-    { '@type': 'Offer', price: '49', priceCurrency: 'USD', name: 'Pro' },
-    { '@type': 'Offer', price: '149', priceCurrency: 'USD', name: 'Business' },
+    { '@type': 'Offer', price: '19.99', priceCurrency: 'USD', name: 'Starter' },
+    { '@type': 'Offer', price: '49.99', priceCurrency: 'USD', name: 'Pro' },
+    { '@type': 'Offer', price: '149.99', priceCurrency: 'USD', name: 'Business' },
   ],
   aggregateRating: {
     '@type': 'AggregateRating',
